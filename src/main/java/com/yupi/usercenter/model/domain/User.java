@@ -27,7 +27,7 @@ public class User implements Serializable {
     /**
      * 用户名
      */
-    private String userName;
+    private String username;
 
     /**
      * 性别
@@ -79,6 +79,11 @@ public class User implements Serializable {
      * 0-用户，1-管理员
      */
     private Integer userRole;
+
+    /**
+     * 星球编号
+     */
+    private String planetCode;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

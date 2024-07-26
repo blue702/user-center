@@ -18,7 +18,7 @@ class UserServiceTest {
     void addUser() {
         User user = new User();
         user.setUserAccount("2047469393");
-        user.setUserName("john");
+        user.setUsername("john");
         user.setGender(0);
         user.setAvatarUrl("https://images.zsxq.com/FtyoJkpZiZggIg_h79bUGuTkLExp?e=1725119999&token=kIxbL07-8jAj8w1n4s9zv64FuZZNEATmlU_Vm6zD:ZgLY7ZQ9IPoXogMcgXZ1Uvq9uKM=");
         user.setUserPassword("123");
@@ -69,10 +69,11 @@ class UserServiceTest {
 //        result = userService.userRegister(userAccount, userPassword, checkPassword);
 //        Assertions.assertTrue(result > 0);
 
-        String userAccount = "john";
+        String userAccount = "john111";
         String userPassword = "12345678";
         String checkPassword = "12345678";
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        String planetCode = "5";
+        long result = userService.userRegister(userAccount, userPassword, checkPassword,planetCode);
         System.out.println(result);
 
     }

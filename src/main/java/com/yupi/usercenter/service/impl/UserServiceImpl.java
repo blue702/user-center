@@ -42,16 +42,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return id
      */
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+    public long userRegister(String userAccount, String userPassword, String checkPassword,String planetCode) {
 
         //1、校验
-        if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword)){
+        if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
             return -1;
         }
         if(userAccount.length()<4){
             return -1;
         }
         if(userPassword.length()<8||checkPassword.length()<8){
+            return -1;
+        }
+        if(planetCode.length()>5){
             return -1;
         }
 
@@ -75,6 +78,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return -1;
         }
 
+        //星球编号不能重复
+        userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.eq("planetCode",planetCode);
+        count = this.count(userQueryWrapper);
+        if(count>0){
+            return -1;
+        }
+
         //2、密码加密
         String newPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
 
@@ -82,6 +93,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(newPassword);
+        user.setPlanetCode(planetCode);
         boolean save = this.save(user);
         if(!save){
             return -1;
@@ -149,15 +161,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User safetyUser = new User();
         safetyUser.setId(user.getId());
         safetyUser.setUserAccount(user.getUserAccount());
-        safetyUser.setUserName(user.getUserName());
+        safetyUser.setUsername(user.getUsername());
         safetyUser.setGender(user.getGender());
         safetyUser.setAvatarUrl(user.getAvatarUrl());
         safetyUser.setPhone(user.getPhone());
         safetyUser.setEmail(user.getEmail());
+        safetyUser.setPlanetCode(user.getPlanetCode());
         safetyUser.setUserRole(user.getUserRole());
         safetyUser.setUserStatus(user.getUserStatus());
         safetyUser.setCreateTime(user.getCreateTime());
         return safetyUser;
+    }
+
+    /**
+     * 用户注销
+     * @param request
+     */
+    @Override
+    public int userLogout(HttpServletRequest request) {
+        //移除登录态
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return 1;
     }
 }
 
