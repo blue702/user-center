@@ -2,6 +2,9 @@ package com.yupi.usercenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yupi.usercenter.common.ErrorCode;
+import com.yupi.usercenter.common.ResultUtils;
+import com.yupi.usercenter.exception.BusinessException;
 import com.yupi.usercenter.mapper.UserMapper;
 import com.yupi.usercenter.service.UserService;
 import com.yupi.usercenter.model.domain.User;
@@ -46,28 +49,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         //1、校验
         if(StringUtils.isAnyBlank(userAccount,userPassword,checkPassword,planetCode)){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数为空");
         }
         if(userAccount.length()<4){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户长度不能小于4位");
         }
         if(userPassword.length()<8||checkPassword.length()<8){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"密卡长度不能小于8位");
         }
         if(planetCode.length()>5){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"编号长度不能大于5位");
         }
 
         //账户不包含特殊字符
         String validPattern = "[ `~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if (matcher.find()) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户不能包含特殊字符");
         }
 
         //密码相同
         if(!userPassword.equals(checkPassword)){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"两次密码不同");
         }
 
         //账户不能重复
@@ -75,7 +78,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userQueryWrapper.eq("userAccount",userAccount);
         long count = this.count(userQueryWrapper);
         if(count>0){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户不能重复");
         }
 
         //星球编号不能重复
@@ -83,7 +86,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userQueryWrapper.eq("planetCode",planetCode);
         count = this.count(userQueryWrapper);
         if(count>0){
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"星球编号不能重复");
         }
 
         //2、密码加密
@@ -96,7 +99,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setPlanetCode(planetCode);
         boolean save = this.save(user);
         if(!save){
-            return -1;
+            throw new RuntimeException();
         }
 
         return user.getId();
@@ -114,20 +117,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         //1、校验
         if(StringUtils.isAnyBlank(userAccount,userPassword)){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数为空");
         }
          if(userAccount.length()<4){
-            return null;
+             throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户长度不能小于4位");
         }
         if(userPassword.length()<8){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"密卡长度不能小于8位");
         }
 
         //账户不包含特殊字符
         String validPattern = "[ `~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if (matcher.find()) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账户不能包含特殊字符");
         }
 
         //2、密码加密
@@ -141,7 +144,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //用户不存在
         if(user==null){
             log.info("login fail,userAccount cannot match userPassword");
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_NULL_ERROR);
         }
         //3、用户脱敏
         User safetyUser = getSafetyUser(user);
@@ -160,7 +163,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public User getSafetyUser(User user){
 
         if(user == null){
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_NULL_ERROR);
         }
 
         User safetyUser = new User();
